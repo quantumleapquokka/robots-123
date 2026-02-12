@@ -158,6 +158,8 @@ int MinerShip::SetupShip() {
                 FIRE_PHASER();
             }
         }
+    } ELSE() {
+        THRUST(4);
     }
     IF_SHIP_DAMAGED() {
         SCAN();
@@ -194,6 +196,34 @@ int GraemeShip::SetupShip() {
     return Finalize();
 }
 
+int BeepBoopShip::SetupShip() {
+    SCAN();
+    IF_SEEN() {
+        TURN_TO_SCAN();
+        IF_SCAN_LE(450) {
+            // Thrust away from threat
+            THRUST(3);
+            IF_SHIP_CAN_FIRE_PHOTON() {
+                FIRE_PHOTON();  // Fire while retreating
+            }
+            IF_SHIP_CAN_FIRE_PHOTON() {
+                FIRE_PHOTON();
+            }
+        }
+    }
+    IF_SHIP_HP_LE(6) {  // Emergency threshold
+        THRUST(2);
+    }
+    IF_SHIP_FUEL_LE(35) {
+        SCAN();
+        IF_SCAN_LE(200) {  // Increased from 100
+            TURN_TO_SCAN();
+            THRUST(2);
+        }
+    }
+    return Finalize();
+}
+
 // ===== AstroBots game implementation =====
 AstroBots::AstroBots() {
     _currentTurn = 0;
@@ -209,6 +239,7 @@ std::vector<std::unique_ptr<ShipBase>> AstroBots::makeShips() {
     v.emplace_back(std::make_unique<DroneShip>());
     v.emplace_back(std::make_unique<MinerShip>());
     v.emplace_back(std::make_unique<GraemeShip>());
+    v.emplace_back(std::make_unique<BeepBoopShip>());
     return v;
 }
 
